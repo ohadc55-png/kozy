@@ -25,6 +25,7 @@ DB_PATH = "kozy_review.db"
 # תמונות
 LOGO_URL = "https://i.postimg.cc/7LMZ1dLJ/קוזי.png"
 MASCOT_URL = "https://i.postimg.cc/fbjR7pb0/רועי.png"
+BG_IMAGE_URL = "https://i.postimg.cc/pTGtWyzv/Whats-App-Image-2026-01-21-at-01-16-53.jpg"
 
 # ======================
 # עיצוב - Design System
@@ -87,8 +88,26 @@ def load_css():
     }}
     
     .stApp {{
-        background: {COLORS['bg_dark']};
         direction: rtl;
+        background: #0a0a0f;
+    }}
+    
+    /* Background Image with Overlay */
+    .stApp::before {{
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{BG_IMAGE_URL}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        opacity: 0.45;
+        z-index: -1;
+        pointer-events: none;
     }}
     
     /* Hide Streamlit branding */
@@ -99,26 +118,29 @@ def load_css():
     h1 {{
         font-size: 2.5rem !important;
         font-weight: 800 !important;
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
         letter-spacing: -0.02em !important;
         margin-bottom: 0.5rem !important;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }}
     
     h2 {{
         font-size: 1.5rem !important;
         font-weight: 700 !important;
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
         letter-spacing: -0.01em !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }}
     
     h3 {{
         font-size: 1.125rem !important;
         font-weight: 600 !important;
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.3);
     }}
     
     p, span, div {{
-        color: {COLORS['text_secondary']};
+        color: rgba(255,255,255,0.85);
         line-height: 1.6;
     }}
     
@@ -134,10 +156,13 @@ def load_css():
         align-items: center;
         justify-content: space-between;
         padding: 1.25rem 2rem;
-        background: {COLORS['bg_card']};
-        border: 1px solid {COLORS['border']};
+        background: rgba(15, 15, 25, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 16px;
         margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }}
     
     .kozy-logo {{
@@ -154,8 +179,9 @@ def load_css():
     .kozy-logo-text {{
         font-size: 1.5rem;
         font-weight: 800;
-        color: {COLORS['text_primary']};
+        color: #FFFFFF;
         letter-spacing: -0.02em;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }}
     
     /* ===== HERO SECTION ===== */
@@ -163,43 +189,56 @@ def load_css():
         text-align: center;
         padding: 4rem 2rem;
         margin-bottom: 2rem;
+        background: rgba(15, 15, 25, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.08);
     }}
     
     .hero-title {{
         font-size: 3rem;
         font-weight: 900;
-        color: {COLORS['text_primary']};
+        color: #FFFFFF;
         margin-bottom: 1rem;
         letter-spacing: -0.03em;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }}
     
     .hero-subtitle {{
         font-size: 1.25rem;
-        color: {COLORS['text_secondary']};
+        color: rgba(255,255,255,0.75);
         max-width: 500px;
         margin: 0 auto;
         line-height: 1.7;
     }}
     
-    /* ===== CARDS ===== */
+    /* ===== CARDS - Glass Morphism ===== */
     .card {{
-        background: {COLORS['bg_card']};
-        border: 1px solid {COLORS['border']};
+        background: rgba(15, 15, 25, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 16px;
         padding: 1.5rem;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     }}
     
     .card:hover {{
-        border-color: {COLORS['primary']};
-        box-shadow: 0 0 0 1px {COLORS['primary']};
+        border-color: rgba(108, 92, 231, 0.5);
+        box-shadow: 0 12px 40px rgba(108, 92, 231, 0.15);
+        transform: translateY(-2px);
     }}
     
     .card-elevated {{
-        background: {COLORS['bg_elevated']};
-        border: 1px solid {COLORS['border']};
+        background: rgba(20, 20, 35, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 20px;
         padding: 2rem;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
     }}
     
     /* ===== VIDEO CONTAINER ===== */
@@ -207,8 +246,9 @@ def load_css():
         background: #000;
         border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.6);
         margin-bottom: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.1);
     }}
     
     .video-wrapper video {{
@@ -218,17 +258,20 @@ def load_css():
     
     /* ===== TIMER ===== */
     .timer {{
-        background: linear-gradient(135deg, {COLORS['bg_elevated']} 0%, {COLORS['bg_card']} 100%);
-        border: 1px solid {COLORS['border']};
+        background: rgba(20, 20, 35, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 16px;
         padding: 1.5rem;
         text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     }}
     
     .timer-label {{
         font-size: 0.75rem;
         font-weight: 600;
-        color: {COLORS['text_muted']};
+        color: rgba(255,255,255,0.5);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 0.5rem;
@@ -238,11 +281,13 @@ def load_css():
         font-size: 1.75rem;
         font-weight: 800;
         color: {COLORS['warning']};
+        text-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
     }}
     
     .timer-urgent .timer-value {{
         color: {COLORS['error']};
         animation: pulse 1.5s ease-in-out infinite;
+        text-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
     }}
     
     @keyframes pulse {{
@@ -259,31 +304,37 @@ def load_css():
     }}
     
     .stat-item {{
-        background: {COLORS['bg_elevated']};
-        border: 1px solid {COLORS['border']};
+        background: rgba(20, 20, 35, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 12px;
         padding: 1rem;
         text-align: center;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }}
     
     .stat-value {{
         font-size: 2rem;
         font-weight: 800;
-        color: {COLORS['text_primary']};
+        color: #FFFFFF;
         line-height: 1;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }}
     
     .stat-label {{
         font-size: 0.75rem;
         font-weight: 500;
-        color: {COLORS['text_muted']};
+        color: rgba(255,255,255,0.5);
         margin-top: 0.25rem;
     }}
     
     /* ===== LINK BOX ===== */
     .link-box {{
-        background: rgba(108, 92, 231, 0.1);
-        border: 1px dashed {COLORS['primary']};
+        background: rgba(108, 92, 231, 0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px dashed rgba(108, 92, 231, 0.5);
         border-radius: 12px;
         padding: 1.25rem;
         text-align: center;
@@ -292,12 +343,12 @@ def load_css():
     .link-box-label {{
         font-size: 0.75rem;
         font-weight: 600;
-        color: {COLORS['text_muted']};
+        color: rgba(255,255,255,0.6);
         margin-bottom: 0.75rem;
     }}
     
     .link-box-url {{
-        background: {COLORS['bg_dark']};
+        background: rgba(0,0,0,0.4);
         color: {COLORS['primary_light']};
         padding: 0.75rem 1rem;
         border-radius: 8px;
@@ -309,22 +360,27 @@ def load_css():
     
     /* ===== COMMENTS ===== */
     .comment {{
-        background: {COLORS['bg_elevated']};
-        border: 1px solid {COLORS['border']};
+        background: rgba(20, 20, 35, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.08);
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1rem;
         border-right: 3px solid {COLORS['primary']};
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }}
     
     .comment:hover {{
-        background: rgba(30, 30, 40, 0.8);
+        background: rgba(25, 25, 45, 0.85);
+        border-color: rgba(255,255,255,0.15);
+        transform: translateX(-4px);
     }}
     
     .comment.resolved {{
         opacity: 0.5;
-        border-right-color: {COLORS['text_muted']};
+        border-right-color: rgba(255,255,255,0.2);
     }}
     
     .comment-header {{
@@ -336,13 +392,14 @@ def load_css():
     }}
     
     .comment-time {{
-        background: {COLORS['primary']};
+        background: linear-gradient(135deg, {COLORS['primary']} 0%, {COLORS['primary_dark']} 100%);
         color: white;
         padding: 0.25rem 0.75rem;
         border-radius: 6px;
         font-size: 0.8125rem;
         font-weight: 600;
         font-family: 'Monaco', monospace !important;
+        box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
     }}
     
     .comment-tag {{
@@ -350,10 +407,11 @@ def load_css():
         border-radius: 6px;
         font-size: 0.75rem;
         font-weight: 600;
+        backdrop-filter: blur(8px);
     }}
     
     .comment-text {{
-        color: {COLORS['text_primary']};
+        color: #FFFFFF;
         font-size: 0.9375rem;
         line-height: 1.6;
         margin-bottom: 0.75rem;
@@ -361,38 +419,43 @@ def load_css():
     
     .comment-meta {{
         font-size: 0.75rem;
-        color: {COLORS['text_muted']};
+        color: rgba(255,255,255,0.5);
     }}
     
     /* ===== WELCOME BOX (Client) ===== */
     .welcome {{
-        background: linear-gradient(135deg, rgba(108, 92, 231, 0.15) 0%, rgba(108, 92, 231, 0.05) 100%);
-        border: 1px solid rgba(108, 92, 231, 0.3);
+        background: rgba(108, 92, 231, 0.12);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(108, 92, 231, 0.25);
         border-radius: 16px;
         padding: 1.5rem 2rem;
         text-align: center;
         margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(108, 92, 231, 0.1);
     }}
     
     .welcome-text {{
         font-size: 1.125rem;
         font-weight: 600;
-        color: {COLORS['text_primary']};
+        color: #FFFFFF;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }}
     
     .welcome-subtext {{
         font-size: 0.875rem;
-        color: {COLORS['text_secondary']};
+        color: rgba(255,255,255,0.7);
         margin-top: 0.5rem;
     }}
     
     /* ===== FORM INPUTS ===== */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea {{
-        background: {COLORS['bg_elevated']} !important;
-        border: 1px solid {COLORS['border']} !important;
+        background: rgba(20, 20, 35, 0.8) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
         border-radius: 10px !important;
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
         font-size: 0.9375rem !important;
         padding: 0.75rem 1rem !important;
     }}
@@ -400,29 +463,29 @@ def load_css():
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {{
         border-color: {COLORS['primary']} !important;
-        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15) !important;
+        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2) !important;
     }}
     
     .stTextInput > div > div > input::placeholder,
     .stTextArea > div > div > textarea::placeholder {{
-        color: {COLORS['text_muted']} !important;
+        color: rgba(255,255,255,0.4) !important;
     }}
     
     .stSelectbox > div > div {{
-        background: {COLORS['bg_elevated']} !important;
-        border: 1px solid {COLORS['border']} !important;
+        background: rgba(20, 20, 35, 0.8) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
         border-radius: 10px !important;
     }}
     
     .stSelectbox > div > div > div {{
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
     }}
     
     .stNumberInput > div > div > input {{
-        background: {COLORS['bg_elevated']} !important;
-        border: 1px solid {COLORS['border']} !important;
+        background: rgba(20, 20, 35, 0.8) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
         border-radius: 10px !important;
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
     }}
     
     /* Labels */
@@ -430,7 +493,7 @@ def load_css():
     .stTextArea > label,
     .stSelectbox > label,
     .stNumberInput > label {{
-        color: {COLORS['text_secondary']} !important;
+        color: rgba(255,255,255,0.75) !important;
         font-weight: 500 !important;
         font-size: 0.875rem !important;
         margin-bottom: 0.5rem !important;
@@ -445,13 +508,13 @@ def load_css():
         padding: 0.75rem 1.5rem !important;
         font-weight: 600 !important;
         font-size: 0.9375rem !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 4px 14px rgba(108, 92, 231, 0.35) !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4) !important;
     }}
     
     .stButton > button:hover {{
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.45) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 30px rgba(108, 92, 231, 0.5) !important;
     }}
     
     .stButton > button:active {{
@@ -460,92 +523,105 @@ def load_css():
     
     /* Secondary buttons */
     .stButton > button[kind="secondary"] {{
-        background: {COLORS['bg_elevated']} !important;
-        border: 1px solid {COLORS['border']} !important;
-        box-shadow: none !important;
+        background: rgba(20, 20, 35, 0.7) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
     }}
     
     .stButton > button[kind="secondary"]:hover {{
-        background: {COLORS['bg_card']} !important;
+        background: rgba(30, 30, 50, 0.8) !important;
         border-color: {COLORS['primary']} !important;
     }}
     
     /* ===== TABS ===== */
     .stTabs [data-baseweb="tab-list"] {{
-        background: {COLORS['bg_card']};
+        background: rgba(15, 15, 25, 0.8);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border-radius: 12px;
         padding: 0.375rem;
         gap: 0.25rem;
-        border: 1px solid {COLORS['border']};
+        border: 1px solid rgba(255,255,255,0.1);
     }}
     
     .stTabs [data-baseweb="tab"] {{
         background: transparent;
         border-radius: 8px;
-        color: {COLORS['text_secondary']};
+        color: rgba(255,255,255,0.6);
         font-weight: 500;
         padding: 0.625rem 1.25rem;
     }}
     
     .stTabs [aria-selected="true"] {{
-        background: {COLORS['primary']} !important;
+        background: linear-gradient(135deg, {COLORS['primary']} 0%, {COLORS['primary_dark']} 100%) !important;
         color: white !important;
+        box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
     }}
     
     /* ===== DIVIDER ===== */
     hr {{
         border: none !important;
         height: 1px !important;
-        background: {COLORS['border']} !important;
+        background: rgba(255,255,255,0.1) !important;
         margin: 2rem 0 !important;
     }}
     
     /* ===== FILE UPLOADER ===== */
     .stFileUploader {{
-        background: {COLORS['bg_card']};
-        border: 2px dashed {COLORS['border']};
+        background: rgba(15, 15, 25, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 2px dashed rgba(255,255,255,0.15);
         border-radius: 16px;
         padding: 2rem;
+        transition: all 0.3s ease;
     }}
     
     .stFileUploader:hover {{
         border-color: {COLORS['primary']};
+        background: rgba(108, 92, 231, 0.1);
     }}
     
     .stFileUploader > div {{
-        color: {COLORS['text_secondary']} !important;
+        color: rgba(255,255,255,0.7) !important;
     }}
     
     /* ===== ALERTS ===== */
     .stSuccess {{
-        background: rgba(16, 185, 129, 0.1) !important;
+        background: rgba(16, 185, 129, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(16, 185, 129, 0.3) !important;
         border-radius: 10px !important;
     }}
     
     .stError {{
-        background: rgba(239, 68, 68, 0.1) !important;
+        background: rgba(239, 68, 68, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
         border-radius: 10px !important;
     }}
     
     .stWarning {{
-        background: rgba(245, 158, 11, 0.1) !important;
+        background: rgba(245, 158, 11, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(245, 158, 11, 0.3) !important;
         border-radius: 10px !important;
     }}
     
     .stInfo {{
-        background: rgba(59, 130, 246, 0.1) !important;
+        background: rgba(59, 130, 246, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(59, 130, 246, 0.3) !important;
         border-radius: 10px !important;
     }}
     
     /* ===== EXPANDER ===== */
     .streamlit-expanderHeader {{
-        background: {COLORS['bg_elevated']} !important;
+        background: rgba(20, 20, 35, 0.8) !important;
+        backdrop-filter: blur(12px) !important;
         border-radius: 10px !important;
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
         font-weight: 500 !important;
     }}
     
@@ -559,24 +635,25 @@ def load_css():
     }}
     
     .mascot:hover {{
-        transform: scale(1.08) translateY(-4px);
+        transform: scale(1.1) translateY(-6px);
     }}
     
     .mascot img {{
         height: 100px;
-        filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
+        filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.5));
         border-radius: 50%;
     }}
     
     /* ===== METRICS ===== */
     [data-testid="stMetricValue"] {{
-        color: {COLORS['text_primary']} !important;
+        color: #FFFFFF !important;
         font-size: 1.75rem !important;
         font-weight: 800 !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }}
     
     [data-testid="stMetricLabel"] {{
-        color: {COLORS['text_muted']} !important;
+        color: rgba(255,255,255,0.5) !important;
         font-size: 0.75rem !important;
         font-weight: 600 !important;
         text-transform: uppercase !important;
@@ -585,11 +662,14 @@ def load_css():
     
     /* ===== COMPLETED STATE ===== */
     .completed-box {{
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+        background: rgba(16, 185, 129, 0.15);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(16, 185, 129, 0.3);
         border-radius: 16px;
         padding: 2rem;
         text-align: center;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15);
     }}
     
     .completed-icon {{
@@ -602,10 +682,11 @@ def load_css():
         font-weight: 700;
         color: {COLORS['success']};
         margin-bottom: 0.5rem;
+        text-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     }}
     
     .completed-text {{
-        color: {COLORS['text_secondary']};
+        color: rgba(255,255,255,0.7);
         font-size: 0.9375rem;
     }}
     
