@@ -708,6 +708,12 @@ def get_time_remaining(expires_at):
 
 def get_base_url():
     """קבלת URL בסיסי של האפליקציה"""
+    # בדיקה אם רץ על Hugging Face Spaces
+    space_host = os.environ.get("SPACE_HOST")
+    if space_host:
+        return f"https://{space_host}"
+    
+    # אם לא - localhost לפיתוח מקומי
     return "http://localhost:8501"
 
 
