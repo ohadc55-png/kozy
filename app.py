@@ -713,8 +713,23 @@ def get_base_url():
     if space_host:
         return f"https://{space_host}"
     
-    # אם לא - localhost לפיתוח מקומי
-    return "http://localhost:8501"
+    # בדיקה אם רץ על Streamlit Cloud
+    if "streamlit.app" in os.environ.get("HOSTNAME", ""):
+        return "https://roy-kozy.streamlit.app"
+    
+    # ניסיון לזהות את הכתובת האמיתית
+    try:
+        from streamlit.web.server.websocket_headers import _get_websocket_headers
+        headers = _get_websocket_headers()
+        if headers and "Host" in headers:
+            host = headers["Host"]
+            if "localhost" not in host:
+                return f"https://{host}"
+    except:
+        pass
+    
+    # ברירת מחדל - הכתובת של Streamlit Cloud שלך
+    return "https://roy-kozy.streamlit.app"
 
 
 # ======================
