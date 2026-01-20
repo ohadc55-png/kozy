@@ -345,11 +345,16 @@ st.markdown(f"""
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stSelectbox > div > div {{
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
         border-radius: 12px !important;
-        color: #F1F5F9 !important;
+        color: #1E293B !important;
         font-size: 15px !important;
+    }}
+    
+    .stTextInput > div > div > input::placeholder,
+    .stTextArea > div > div > textarea::placeholder {{
+        color: #64748B !important;
     }}
     
     .stTextInput > div > div > input:focus,
@@ -638,6 +643,24 @@ def toggle_comment_resolved(comment_id):
     c = conn.cursor()
     
     c.execute('UPDATE comments SET resolved = NOT resolved WHERE id = ?', (comment_id,))
+    conn.commit()
+    conn.close()
+
+
+def mark_review_complete(project_id, client_name):
+    """סימון שהלקוח סיים לתת משוב"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # הוספת הערה מיוחדת שמציינת שהלקוח סיים
+    comment_id = str(uuid.uuid4())
+    c.execute('''
+        INSERT INTO comments (id, project_id, timestamp_seconds, text, author_name, 
+                            author_type, category, priority)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (comment_id, project_id, 0, f"✅ {client_name} סיים/ה לתת משוב - אפשר להמשיך לעבוד!", 
+          client_name, "client", "video", "high"))
+    
     conn.commit()
     conn.close()
 
@@ -999,15 +1022,14 @@ def page_editor(project):
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown("### 💬 הוסף הערה חדשה")
         
-        col_time, col_cat, col_pri = st.columns([1, 2, 2])
+        # שורה ראשונה - זמן
+        st.markdown("**⏱️ נקודת זמן:**")
+        col_min, col_sec, col_cat, col_pri = st.columns([1, 1, 2, 2])
         
-        with col_time:
-            st.markdown("**⏱️ נקודת זמן:**")
-            c1, c2 = st.columns(2)
-            with c1:
-                minutes = st.number_input("דקות", min_value=0, value=0, key="ed_min")
-            with c2:
-                seconds = st.number_input("שניות", min_value=0, max_value=59, value=0, key="ed_sec")
+        with col_min:
+            minutes = st.number_input("דקות", min_value=0, value=0, key="ed_min")
+        with col_sec:
+            seconds = st.number_input("שניות", min_value=0, max_value=59, value=0, key="ed_sec")
         
         with col_cat:
             category = st.selectbox(
@@ -1148,6 +1170,31 @@ def page_client(project):
     else:
         for comment in comments:
             render_comment_card(comment, is_editor=False)
+    
+    # כפתור "סיימתי לתת משוב"
+    st.markdown("---")
+    st.markdown("### ✅ סיימת?")
+    
+    if 'review_completed' not in st.session_state:
+        st.session_state.review_completed = False
+    
+    if not st.session_state.review_completed:
+        client_name_confirm = st.text_input("השם שלך לאישור", placeholder="הכנס את שמך...", key="confirm_name")
+        
+        if st.button("🎉 סיימתי לתת משוב - אפשר להמשיך לעבוד!", type="primary", use_container_width=True, disabled=not client_name_confirm):
+            # עדכון הפרויקט שהלקוח סיים
+            mark_review_complete(project['id'], client_name_confirm)
+            st.session_state.review_completed = True
+            st.success("✅ תודה רבה! העורך קיבל הודעה שסיימת את המשוב.")
+            st.balloons()
+            st.rerun()
+    else:
+        st.markdown(f"""
+        <div class="welcome-box" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.1) 100%);">
+            <span style="color: #34D399; font-size: 20px;">✅ המשוב שלך נשלח בהצלחה!</span>
+            <p style="color: #94A3B8; margin-top: 8px;">העורך יקבל הודעה ויתחיל לעבוד על התיקונים.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ======================
