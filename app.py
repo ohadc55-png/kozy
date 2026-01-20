@@ -5,14 +5,13 @@ import uuid
 import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
-import json
 import time
 
 # ======================
 # הגדרות בסיסיות
 # ======================
 st.set_page_config(
-    page_title="Kozy Review | סקירת וידאו מקצועית",
+    page_title="Kozy Review",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -27,443 +26,594 @@ DB_PATH = "kozy_review.db"
 LOGO_URL = "https://i.postimg.cc/7LMZ1dLJ/קוזי.png"
 MASCOT_URL = "https://i.postimg.cc/fbjR7pb0/רועי.png"
 
-# קטגוריות ועדיפויות
+# ======================
+# עיצוב - Design System
+# ======================
+
+# צבעים - פלטה מינימליסטית ומקצועית
+COLORS = {
+    # Primary - כחול-סגול עמוק ומקצועי
+    "primary": "#6C5CE7",
+    "primary_light": "#A29BFE",
+    "primary_dark": "#5541D7",
+    
+    # Neutral - גווני אפור
+    "bg_dark": "#0D0D12",
+    "bg_card": "#16161D",
+    "bg_elevated": "#1E1E28",
+    "border": "#2A2A36",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#9CA3AF",
+    "text_muted": "#6B7280",
+    
+    # Accent
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "error": "#EF4444",
+    "info": "#3B82F6",
+}
+
+# קטגוריות - צבעים מותאמים
 CATEGORIES = {
-    "video": {"label": "וידאו", "icon": "🎬", "color": "#6366F1"},
-    "image": {"label": "תמונה", "icon": "🖼️", "color": "#8B5CF6"},
-    "effect": {"label": "אפקט", "icon": "✨", "color": "#F59E0B"},
-    "subtitles": {"label": "כתוביות", "icon": "💬", "color": "#10B981"},
-    "transition": {"label": "מעבר", "icon": "🔄", "color": "#F97316"},
-    "music": {"label": "מוזיקה", "icon": "🎵", "color": "#EC4899"},
-    "sound": {"label": "סאונד", "icon": "🔊", "color": "#3B82F6"},
-    "ai": {"label": "AI", "icon": "🤖", "color": "#06B6D4"},
-    "bug": {"label": "באג", "icon": "🐛", "color": "#EF4444"},
+    "video": {"label": "וידאו", "icon": "🎬", "color": "#818CF8"},
+    "image": {"label": "תמונה", "icon": "🖼️", "color": "#C084FC"},
+    "effect": {"label": "אפקט", "icon": "✨", "color": "#FBBF24"},
+    "subtitles": {"label": "כתוביות", "icon": "💬", "color": "#34D399"},
+    "transition": {"label": "מעבר", "icon": "🔄", "color": "#FB923C"},
+    "music": {"label": "מוזיקה", "icon": "🎵", "color": "#F472B6"},
+    "sound": {"label": "סאונד", "icon": "🔊", "color": "#60A5FA"},
+    "ai": {"label": "AI", "icon": "🤖", "color": "#22D3EE"},
+    "bug": {"label": "באג", "icon": "🐛", "color": "#F87171"},
 }
 
 PRIORITIES = {
-    "low": {"label": "נמוכה", "color": "#10B981", "bg": "#D1FAE5"},
-    "medium": {"label": "בינונית", "color": "#F59E0B", "bg": "#FEF3C7"},
-    "high": {"label": "גבוהה", "color": "#EF4444", "bg": "#FEE2E2"},
+    "low": {"label": "נמוכה", "color": "#10B981", "bg": "rgba(16, 185, 129, 0.15)"},
+    "medium": {"label": "בינונית", "color": "#F59E0B", "bg": "rgba(245, 158, 11, 0.15)"},
+    "high": {"label": "גבוהה", "color": "#EF4444", "bg": "rgba(239, 68, 68, 0.15)"},
 }
 
 # ======================
-# CSS מקצועי
+# CSS מקצועי - Design System
 # ======================
-st.markdown(f"""
+def load_css():
+    st.markdown(f"""
 <style>
-    /* ייבוא פונט */
-    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+    /* ===== RESET & BASE ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
     
-    /* בסיס */
     * {{
-        font-family: 'Heebo', sans-serif !important;
+        font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        box-sizing: border-box;
     }}
     
     .stApp {{
+        background: {COLORS['bg_dark']};
         direction: rtl;
-        background: linear-gradient(180deg, #0F0F1A 0%, #1A1A2E 50%, #16213E 100%);
-        min-height: 100vh;
     }}
     
-    /* הסתרת אלמנטים של Streamlit */
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    header {{visibility: hidden;}}
+    /* Hide Streamlit branding */
+    #MainMenu, footer, header {{visibility: hidden;}}
     .stDeployButton {{display: none;}}
     
-    /* כותרות */
-    h1, h2, h3, h4, h5, h6 {{
-        text-align: right !important;
-        color: #FFFFFF !important;
+    /* ===== TYPOGRAPHY ===== */
+    h1 {{
+        font-size: 2.5rem !important;
+        font-weight: 800 !important;
+        color: {COLORS['text_primary']} !important;
+        letter-spacing: -0.02em !important;
+        margin-bottom: 0.5rem !important;
+    }}
+    
+    h2 {{
+        font-size: 1.5rem !important;
         font-weight: 700 !important;
+        color: {COLORS['text_primary']} !important;
+        letter-spacing: -0.01em !important;
     }}
     
-    p, span, label, div {{
-        color: #E2E8F0;
+    h3 {{
+        font-size: 1.125rem !important;
+        font-weight: 600 !important;
+        color: {COLORS['text_primary']} !important;
     }}
     
-    /* Header מותאם */
-    .main-header {{
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
-        padding: 24px 32px;
-        margin-bottom: 32px;
+    p, span, div {{
+        color: {COLORS['text_secondary']};
+        line-height: 1.6;
+    }}
+    
+    /* ===== LAYOUT ===== */
+    .block-container {{
+        padding: 2rem 3rem !important;
+        max-width: 1400px !important;
+    }}
+    
+    /* ===== HEADER ===== */
+    .kozy-header {{
         display: flex;
         align-items: center;
         justify-content: space-between;
+        padding: 1.25rem 2rem;
+        background: {COLORS['bg_card']};
+        border: 1px solid {COLORS['border']};
+        border-radius: 16px;
+        margin-bottom: 2rem;
     }}
     
-    .logo-section {{
+    .kozy-logo {{
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 1rem;
     }}
     
-    .logo-section img {{
-        height: 60px;
-        filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.3));
+    .kozy-logo img {{
+        height: 48px;
+        object-fit: contain;
     }}
     
-    .brand-text {{
-        font-size: 28px;
+    .kozy-logo-text {{
+        font-size: 1.5rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #EC4899 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: {COLORS['text_primary']};
+        letter-spacing: -0.02em;
     }}
     
-    /* Hero Section */
-    .hero-section {{
+    /* ===== HERO SECTION ===== */
+    .hero {{
         text-align: center;
-        padding: 60px 20px;
-        position: relative;
+        padding: 4rem 2rem;
+        margin-bottom: 2rem;
     }}
     
     .hero-title {{
-        font-size: 48px;
-        font-weight: 800;
-        color: #FFFFFF;
-        margin-bottom: 16px;
-        text-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        font-size: 3rem;
+        font-weight: 900;
+        color: {COLORS['text_primary']};
+        margin-bottom: 1rem;
+        letter-spacing: -0.03em;
     }}
     
     .hero-subtitle {{
-        font-size: 20px;
-        color: #94A3B8;
-        margin-bottom: 40px;
+        font-size: 1.25rem;
+        color: {COLORS['text_secondary']};
+        max-width: 500px;
+        margin: 0 auto;
+        line-height: 1.7;
     }}
     
-    .mascot-container {{
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        z-index: 1000;
-        transition: all 0.3s ease;
-    }}
-    
-    .mascot-container:hover {{
-        transform: scale(1.05) translateY(-5px);
-    }}
-    
-    .mascot-container img {{
-        height: 120px;
-        filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
-        border-radius: 50%;
-    }}
-    
-    .mascot-bubble {{
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
-        padding: 12px 16px;
+    /* ===== CARDS ===== */
+    .card {{
+        background: {COLORS['bg_card']};
+        border: 1px solid {COLORS['border']};
         border-radius: 16px;
-        font-size: 14px;
-        color: #1E293B;
-        white-space: nowrap;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        margin-bottom: 10px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
     }}
     
-    .mascot-container:hover .mascot-bubble {{
-        opacity: 1;
+    .card:hover {{
+        border-color: {COLORS['primary']};
+        box-shadow: 0 0 0 1px {COLORS['primary']};
     }}
     
-    .mascot-bubble::after {{
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 8px solid transparent;
-        border-top-color: white;
-    }}
-    
-    /* כרטיסים */
-    .glass-card {{
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    .card-elevated {{
+        background: {COLORS['bg_elevated']};
+        border: 1px solid {COLORS['border']};
         border-radius: 20px;
-        padding: 28px;
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
+        padding: 2rem;
     }}
     
-    .glass-card:hover {{
-        border-color: rgba(99, 102, 241, 0.3);
-        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
-        transform: translateY(-2px);
-    }}
-    
-    /* טיימר */
-    .timer-box {{
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.1) 100%);
-        border: 1px solid rgba(245, 158, 11, 0.3);
+    /* ===== VIDEO CONTAINER ===== */
+    .video-wrapper {{
+        background: #000;
         border-radius: 16px;
-        padding: 20px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        margin-bottom: 1.5rem;
+    }}
+    
+    .video-wrapper video {{
+        width: 100%;
+        display: block;
+    }}
+    
+    /* ===== TIMER ===== */
+    .timer {{
+        background: linear-gradient(135deg, {COLORS['bg_elevated']} 0%, {COLORS['bg_card']} 100%);
+        border: 1px solid {COLORS['border']};
+        border-radius: 16px;
+        padding: 1.5rem;
         text-align: center;
     }}
     
-    .timer-urgent {{
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(248, 113, 113, 0.1) 100%);
-        border-color: rgba(239, 68, 68, 0.3);
-        animation: pulse 2s infinite;
+    .timer-label {{
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: {COLORS['text_muted']};
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }}
+    
+    .timer-value {{
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: {COLORS['warning']};
+    }}
+    
+    .timer-urgent .timer-value {{
+        color: {COLORS['error']};
+        animation: pulse 1.5s ease-in-out infinite;
     }}
     
     @keyframes pulse {{
         0%, 100% {{ opacity: 1; }}
-        50% {{ opacity: 0.8; }}
+        50% {{ opacity: 0.6; }}
     }}
     
-    .timer-value {{
-        font-size: 32px;
-        font-weight: 800;
-        color: #F59E0B;
+    /* ===== STATS ===== */
+    .stat-grid {{
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }}
     
-    .timer-urgent .timer-value {{
-        color: #EF4444;
-    }}
-    
-    /* תגובות */
-    .comment-card {{
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 16px;
-        border-right: 4px solid #6366F1;
-        transition: all 0.3s ease;
-    }}
-    
-    .comment-card:hover {{
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
-    }}
-    
-    .comment-card.resolved {{
-        opacity: 0.5;
-        border-right-color: #475569;
-    }}
-    
-    .comment-timestamp {{
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
-        color: white;
-        padding: 6px 14px;
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 600;
-        font-family: 'Monaco', monospace !important;
-        display: inline-block;
-    }}
-    
-    .comment-text {{
-        color: #F1F5F9;
-        font-size: 15px;
-        line-height: 1.7;
-        margin: 14px 0;
-    }}
-    
-    .comment-author {{
-        color: #64748B;
-        font-size: 13px;
-    }}
-    
-    /* תגיות */
-    .tag {{
-        display: inline-block;
-        padding: 5px 14px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-left: 8px;
-    }}
-    
-    /* סטטיסטיקות */
-    .stat-card {{
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        border-radius: 16px;
-        padding: 20px;
+    .stat-item {{
+        background: {COLORS['bg_elevated']};
+        border: 1px solid {COLORS['border']};
+        border-radius: 12px;
+        padding: 1rem;
         text-align: center;
     }}
     
     .stat-value {{
-        font-size: 36px;
+        font-size: 2rem;
         font-weight: 800;
-        color: #FFFFFF;
+        color: {COLORS['text_primary']};
+        line-height: 1;
     }}
     
     .stat-label {{
-        font-size: 14px;
-        color: #94A3B8;
-        margin-top: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: {COLORS['text_muted']};
+        margin-top: 0.25rem;
     }}
     
-    /* לינק */
+    /* ===== LINK BOX ===== */
     .link-box {{
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(52, 211, 153, 0.1) 100%);
-        border: 2px dashed rgba(16, 185, 129, 0.4);
-        border-radius: 16px;
-        padding: 20px;
+        background: rgba(108, 92, 231, 0.1);
+        border: 1px dashed {COLORS['primary']};
+        border-radius: 12px;
+        padding: 1.25rem;
         text-align: center;
     }}
     
-    .link-box code {{
-        background: rgba(255, 255, 255, 0.1);
-        color: #34D399;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-size: 14px;
-        display: block;
-        margin: 12px 0;
+    .link-box-label {{
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: {COLORS['text_muted']};
+        margin-bottom: 0.75rem;
+    }}
+    
+    .link-box-url {{
+        background: {COLORS['bg_dark']};
+        color: {COLORS['primary_light']};
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-family: 'Monaco', monospace !important;
         word-break: break-all;
+        display: block;
     }}
     
-    /* Upload Area */
-    .upload-area {{
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
-        border: 2px dashed rgba(99, 102, 241, 0.3);
-        border-radius: 20px;
-        padding: 40px;
+    /* ===== COMMENTS ===== */
+    .comment {{
+        background: {COLORS['bg_elevated']};
+        border: 1px solid {COLORS['border']};
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-right: 3px solid {COLORS['primary']};
+        transition: all 0.2s ease;
+    }}
+    
+    .comment:hover {{
+        background: rgba(30, 30, 40, 0.8);
+    }}
+    
+    .comment.resolved {{
+        opacity: 0.5;
+        border-right-color: {COLORS['text_muted']};
+    }}
+    
+    .comment-header {{
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+    }}
+    
+    .comment-time {{
+        background: {COLORS['primary']};
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        font-family: 'Monaco', monospace !important;
+    }}
+    
+    .comment-tag {{
+        padding: 0.25rem 0.625rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }}
+    
+    .comment-text {{
+        color: {COLORS['text_primary']};
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }}
+    
+    .comment-meta {{
+        font-size: 0.75rem;
+        color: {COLORS['text_muted']};
+    }}
+    
+    /* ===== WELCOME BOX (Client) ===== */
+    .welcome {{
+        background: linear-gradient(135deg, rgba(108, 92, 231, 0.15) 0%, rgba(108, 92, 231, 0.05) 100%);
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
         text-align: center;
-        transition: all 0.3s ease;
+        margin-bottom: 2rem;
     }}
     
-    .upload-area:hover {{
-        border-color: rgba(99, 102, 241, 0.6);
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+    .welcome-text {{
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: {COLORS['text_primary']};
     }}
     
-    /* Inputs */
+    .welcome-subtext {{
+        font-size: 0.875rem;
+        color: {COLORS['text_secondary']};
+        margin-top: 0.5rem;
+    }}
+    
+    /* ===== FORM INPUTS ===== */
     .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea,
-    .stSelectbox > div > div {{
-        background: rgba(255, 255, 255, 0.95) !important;
-        border: 1px solid rgba(99, 102, 241, 0.3) !important;
-        border-radius: 12px !important;
-        color: #1E293B !important;
-        font-size: 15px !important;
-    }}
-    
-    .stTextInput > div > div > input::placeholder,
-    .stTextArea > div > div > textarea::placeholder {{
-        color: #64748B !important;
+    .stTextArea > div > div > textarea {{
+        background: {COLORS['bg_elevated']} !important;
+        border: 1px solid {COLORS['border']} !important;
+        border-radius: 10px !important;
+        color: {COLORS['text_primary']} !important;
+        font-size: 0.9375rem !important;
+        padding: 0.75rem 1rem !important;
     }}
     
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {{
-        border-color: #6366F1 !important;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+        border-color: {COLORS['primary']} !important;
+        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15) !important;
     }}
     
-    /* Buttons */
+    .stTextInput > div > div > input::placeholder,
+    .stTextArea > div > div > textarea::placeholder {{
+        color: {COLORS['text_muted']} !important;
+    }}
+    
+    .stSelectbox > div > div {{
+        background: {COLORS['bg_elevated']} !important;
+        border: 1px solid {COLORS['border']} !important;
+        border-radius: 10px !important;
+    }}
+    
+    .stSelectbox > div > div > div {{
+        color: {COLORS['text_primary']} !important;
+    }}
+    
+    .stNumberInput > div > div > input {{
+        background: {COLORS['bg_elevated']} !important;
+        border: 1px solid {COLORS['border']} !important;
+        border-radius: 10px !important;
+        color: {COLORS['text_primary']} !important;
+    }}
+    
+    /* Labels */
+    .stTextInput > label,
+    .stTextArea > label,
+    .stSelectbox > label,
+    .stNumberInput > label {{
+        color: {COLORS['text_secondary']} !important;
+        font-weight: 500 !important;
+        font-size: 0.875rem !important;
+        margin-bottom: 0.5rem !important;
+    }}
+    
+    /* ===== BUTTONS ===== */
     .stButton > button {{
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+        background: linear-gradient(135deg, {COLORS['primary']} 0%, {COLORS['primary_dark']} 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 12px !important;
-        padding: 12px 28px !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 1.5rem !important;
         font-weight: 600 !important;
-        font-size: 15px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+        font-size: 0.9375rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 14px rgba(108, 92, 231, 0.35) !important;
     }}
     
     .stButton > button:hover {{
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.45) !important;
     }}
     
+    .stButton > button:active {{
+        transform: translateY(0) !important;
+    }}
+    
+    /* Secondary buttons */
     .stButton > button[kind="secondary"] {{
-        background: rgba(255, 255, 255, 0.1) !important;
+        background: {COLORS['bg_elevated']} !important;
+        border: 1px solid {COLORS['border']} !important;
         box-shadow: none !important;
     }}
     
-    /* Tabs */
+    .stButton > button[kind="secondary"]:hover {{
+        background: {COLORS['bg_card']} !important;
+        border-color: {COLORS['primary']} !important;
+    }}
+    
+    /* ===== TABS ===== */
     .stTabs [data-baseweb="tab-list"] {{
-        background: rgba(255, 255, 255, 0.05);
+        background: {COLORS['bg_card']};
         border-radius: 12px;
-        padding: 4px;
-        gap: 4px;
+        padding: 0.375rem;
+        gap: 0.25rem;
+        border: 1px solid {COLORS['border']};
     }}
     
     .stTabs [data-baseweb="tab"] {{
         background: transparent;
-        border-radius: 10px;
-        color: #94A3B8;
-        font-weight: 600;
+        border-radius: 8px;
+        color: {COLORS['text_secondary']};
+        font-weight: 500;
+        padding: 0.625rem 1.25rem;
     }}
     
     .stTabs [aria-selected="true"] {{
-        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+        background: {COLORS['primary']} !important;
         color: white !important;
     }}
     
-    /* Video Container */
-    .video-container {{
-        background: #000000;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    /* ===== DIVIDER ===== */
+    hr {{
+        border: none !important;
+        height: 1px !important;
+        background: {COLORS['border']} !important;
+        margin: 2rem 0 !important;
     }}
     
-    /* Metrics */
+    /* ===== FILE UPLOADER ===== */
+    .stFileUploader {{
+        background: {COLORS['bg_card']};
+        border: 2px dashed {COLORS['border']};
+        border-radius: 16px;
+        padding: 2rem;
+    }}
+    
+    .stFileUploader:hover {{
+        border-color: {COLORS['primary']};
+    }}
+    
+    .stFileUploader > div {{
+        color: {COLORS['text_secondary']} !important;
+    }}
+    
+    /* ===== ALERTS ===== */
+    .stSuccess {{
+        background: rgba(16, 185, 129, 0.1) !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        border-radius: 10px !important;
+    }}
+    
+    .stError {{
+        background: rgba(239, 68, 68, 0.1) !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        border-radius: 10px !important;
+    }}
+    
+    .stWarning {{
+        background: rgba(245, 158, 11, 0.1) !important;
+        border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        border-radius: 10px !important;
+    }}
+    
+    .stInfo {{
+        background: rgba(59, 130, 246, 0.1) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 10px !important;
+    }}
+    
+    /* ===== EXPANDER ===== */
+    .streamlit-expanderHeader {{
+        background: {COLORS['bg_elevated']} !important;
+        border-radius: 10px !important;
+        color: {COLORS['text_primary']} !important;
+        font-weight: 500 !important;
+    }}
+    
+    /* ===== MASCOT ===== */
+    .mascot {{
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        z-index: 9999;
+        transition: transform 0.3s ease;
+    }}
+    
+    .mascot:hover {{
+        transform: scale(1.08) translateY(-4px);
+    }}
+    
+    .mascot img {{
+        height: 100px;
+        filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
+        border-radius: 50%;
+    }}
+    
+    /* ===== METRICS ===== */
     [data-testid="stMetricValue"] {{
-        color: #FFFFFF !important;
-        font-size: 28px !important;
+        color: {COLORS['text_primary']} !important;
+        font-size: 1.75rem !important;
+        font-weight: 800 !important;
     }}
     
     [data-testid="stMetricLabel"] {{
-        color: #94A3B8 !important;
+        color: {COLORS['text_muted']} !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
     }}
     
-    /* Divider */
-    hr {{
-        border-color: rgba(255, 255, 255, 0.1) !important;
-        margin: 24px 0 !important;
-    }}
-    
-    /* Welcome Box */
-    .welcome-box {{
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(52, 211, 153, 0.1) 100%);
+    /* ===== COMPLETED STATE ===== */
+    .completed-box {{
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
         border: 1px solid rgba(16, 185, 129, 0.3);
         border-radius: 16px;
-        padding: 20px;
+        padding: 2rem;
         text-align: center;
-        margin-bottom: 24px;
     }}
     
-    .welcome-box span {{
-        color: #34D399;
-        font-size: 18px;
-        font-weight: 600;
+    .completed-icon {{
+        font-size: 3rem;
+        margin-bottom: 1rem;
     }}
     
-    /* Expander */
-    .streamlit-expanderHeader {{
-        background: rgba(255, 255, 255, 0.05) !important;
-        border-radius: 12px !important;
-        color: #F1F5F9 !important;
+    .completed-title {{
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: {COLORS['success']};
+        margin-bottom: 0.5rem;
     }}
     
-    /* Success/Error/Warning messages */
-    .stSuccess, .stError, .stWarning, .stInfo {{
-        border-radius: 12px !important;
+    .completed-text {{
+        color: {COLORS['text_secondary']};
+        font-size: 0.9375rem;
     }}
     
 </style>
 
 <!-- Mascot -->
-<div class="mascot-container">
-    <div class="mascot-bubble">👋 צריך עזרה? אני כאן!</div>
-    <img src="{MASCOT_URL}" alt="Kozy Mascot">
+<div class="mascot">
+    <img src="{MASCOT_URL}" alt="Kozy">
 </div>
 """, unsafe_allow_html=True)
 
@@ -472,7 +622,6 @@ st.markdown(f"""
 # Database Functions
 # ======================
 def init_db():
-    """יצירת טבלאות אם לא קיימות"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
@@ -488,8 +637,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             expires_at TIMESTAMP NOT NULL,
             is_active INTEGER DEFAULT 1,
-            view_count INTEGER DEFAULT 0,
-            allow_download INTEGER DEFAULT 0
+            view_count INTEGER DEFAULT 0
         )
     ''')
     
@@ -514,24 +662,20 @@ def init_db():
 
 
 def generate_token(length=16):
-    """יצירת טוקן ייחודי"""
     return hashlib.sha256(f"{uuid.uuid4()}{time.time()}".encode()).hexdigest()[:length]
 
 
 def create_project(title, description, video_file):
-    """יצירת פרויקט חדש"""
     project_id = str(uuid.uuid4())
     editor_token = generate_token(24)
     client_token = generate_token(16)
     
-    # שמירת הקובץ
     video_filename = f"{project_id}_{video_file.name}"
     video_path = UPLOAD_DIR / video_filename
     
     with open(video_path, "wb") as f:
         f.write(video_file.getbuffer())
     
-    # שמירה ב-DB
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
@@ -551,108 +695,77 @@ def create_project(title, description, video_file):
 
 
 def get_project_by_editor_token(token):
-    """קבלת פרויקט לפי טוקן עורך"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    
     c.execute('SELECT * FROM projects WHERE editor_token = ? AND is_active = 1', (token,))
     row = c.fetchone()
     conn.close()
-    
     return dict(row) if row else None
 
 
 def get_project_by_client_token(token):
-    """קבלת פרויקט לפי טוקן לקוח"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    
     c.execute('SELECT * FROM projects WHERE client_token = ? AND is_active = 1', (token,))
     row = c.fetchone()
-    
     if row:
-        # עדכון מונה צפיות
         c.execute('UPDATE projects SET view_count = view_count + 1 WHERE client_token = ?', (token,))
         conn.commit()
-    
     conn.close()
     return dict(row) if row else None
 
 
 def delete_project(project_id):
-    """מחיקת פרויקט"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
-    # קבלת שם הקובץ למחיקה
     c.execute('SELECT video_filename FROM projects WHERE id = ?', (project_id,))
     row = c.fetchone()
-    
     if row:
         video_path = UPLOAD_DIR / row[0]
         if video_path.exists():
             video_path.unlink()
-    
     c.execute('UPDATE projects SET is_active = 0 WHERE id = ?', (project_id,))
     conn.commit()
     conn.close()
 
 
 def add_comment(project_id, timestamp_seconds, text, author_name, author_type, category, priority):
-    """הוספת תגובה"""
     comment_id = str(uuid.uuid4())
-    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
     c.execute('''
         INSERT INTO comments (id, project_id, timestamp_seconds, text, author_name, 
                             author_type, category, priority)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (comment_id, project_id, timestamp_seconds, text, author_name, 
-          author_type, category, priority))
-    
+    ''', (comment_id, project_id, timestamp_seconds, text, author_name, author_type, category, priority))
     conn.commit()
     conn.close()
-    
     return comment_id
 
 
 def get_comments(project_id):
-    """קבלת כל התגובות לפרויקט"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    
-    c.execute('''
-        SELECT * FROM comments WHERE project_id = ? 
-        ORDER BY timestamp_seconds ASC
-    ''', (project_id,))
-    
+    c.execute('SELECT * FROM comments WHERE project_id = ? ORDER BY timestamp_seconds ASC', (project_id,))
     rows = c.fetchall()
     conn.close()
-    
     return [dict(row) for row in rows]
 
 
 def toggle_comment_resolved(comment_id):
-    """החלפת סטטוס פתור"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
     c.execute('UPDATE comments SET resolved = NOT resolved WHERE id = ?', (comment_id,))
     conn.commit()
     conn.close()
 
 
 def mark_review_complete(project_id, client_name):
-    """סימון שהלקוח סיים לתת משוב"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
-    # הוספת הערה מיוחדת שמציינת שהלקוח סיים
     comment_id = str(uuid.uuid4())
     c.execute('''
         INSERT INTO comments (id, project_id, timestamp_seconds, text, author_name, 
@@ -660,46 +773,30 @@ def mark_review_complete(project_id, client_name):
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ''', (comment_id, project_id, 0, f"✅ {client_name} סיים/ה לתת משוב - אפשר להמשיך לעבוד!", 
           client_name, "client", "video", "high"))
-    
     conn.commit()
     conn.close()
 
 
 def delete_comment(comment_id):
-    """מחיקת תגובה"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
     c.execute('DELETE FROM comments WHERE id = ?', (comment_id,))
     conn.commit()
     conn.close()
 
 
 def cleanup_expired_projects():
-    """מחיקת פרויקטים שפג תוקפם"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
-    # מציאת פרויקטים שפג תוקפם
-    c.execute('''
-        SELECT id, video_filename FROM projects 
-        WHERE expires_at < ? AND is_active = 1
-    ''', (datetime.now(),))
-    
+    c.execute('SELECT id, video_filename FROM projects WHERE expires_at < ? AND is_active = 1', (datetime.now(),))
     expired = c.fetchall()
-    
     for project_id, video_filename in expired:
-        # מחיקת קובץ
         video_path = UPLOAD_DIR / video_filename
         if video_path.exists():
             video_path.unlink()
-        
-        # סימון כלא פעיל
         c.execute('UPDATE projects SET is_active = 0 WHERE id = ?', (project_id,))
-    
     conn.commit()
     conn.close()
-    
     return len(expired)
 
 
@@ -707,40 +804,28 @@ def cleanup_expired_projects():
 # Helper Functions
 # ======================
 def format_time(seconds):
-    """המרת שניות לפורמט MM:SS"""
     mins = int(seconds // 60)
     secs = int(seconds % 60)
     return f"{mins:02d}:{secs:02d}"
 
 
 def get_time_remaining(expires_at):
-    """חישוב זמן נותר"""
     if isinstance(expires_at, str):
         expires_at = datetime.fromisoformat(expires_at)
-    
     remaining = expires_at - datetime.now()
-    
     if remaining.total_seconds() <= 0:
         return None, "פג תוקף"
-    
     hours = int(remaining.total_seconds() // 3600)
     minutes = int((remaining.total_seconds() % 3600) // 60)
-    
     return remaining.total_seconds(), f"{hours} שעות ו-{minutes} דקות"
 
 
 def get_base_url():
-    """קבלת URL בסיסי של האפליקציה"""
-    # בדיקה אם רץ על Hugging Face Spaces
     space_host = os.environ.get("SPACE_HOST")
     if space_host:
         return f"https://{space_host}"
-    
-    # בדיקה אם רץ על Streamlit Cloud
     if "streamlit.app" in os.environ.get("HOSTNAME", ""):
         return "https://roy-kozy.streamlit.app"
-    
-    # ניסיון לזהות את הכתובת האמיתית
     try:
         from streamlit.web.server.websocket_headers import _get_websocket_headers
         headers = _get_websocket_headers()
@@ -750,121 +835,93 @@ def get_base_url():
                 return f"https://{host}"
     except:
         pass
-    
-    # ברירת מחדל - הכתובת של Streamlit Cloud שלך
     return "https://roy-kozy.streamlit.app"
 
 
 # ======================
 # UI Components
 # ======================
-def render_header(title=None, show_back=False):
-    """רנדור כותרת"""
+def render_header(project_title=None):
+    title_html = f'<div style="color: {COLORS["text_secondary"]}; font-size: 0.9375rem;">{project_title}</div>' if project_title else ''
     st.markdown(f"""
-    <div class="main-header">
-        <div class="logo-section">
-            <img src="{LOGO_URL}" alt="Kozy Logo">
-            <span class="brand-text">Kozy Review</span>
+    <div class="kozy-header">
+        <div class="kozy-logo">
+            <img src="{LOGO_URL}" alt="Kozy">
+            <span class="kozy-logo-text">Kozy Review</span>
         </div>
-        {f'<div style="color: #F1F5F9; font-size: 18px; font-weight: 600;">{title}</div>' if title else ''}
+        {title_html}
     </div>
     """, unsafe_allow_html=True)
 
 
 def render_timer(expires_at):
-    """רנדור טיימר ספירה לאחור"""
     remaining_seconds, remaining_text = get_time_remaining(expires_at)
-    
     if remaining_seconds is None:
-        st.error("⚠️ פג תוקף הפרויקט")
+        st.error("⏰ פג תוקף הפרויקט")
         return False
     
-    is_urgent = remaining_seconds < 6 * 3600  # פחות מ-6 שעות
-    
-    css_class = "timer-urgent" if is_urgent else ""
-    icon = "⚠️" if is_urgent else "⏱️"
+    is_urgent = remaining_seconds < 6 * 3600
+    urgent_class = "timer-urgent" if is_urgent else ""
     
     st.markdown(f"""
-    <div class="timer-box {css_class}">
-        <div style="font-size: 13px; color: #94A3B8; margin-bottom: 8px;">זמן נותר לצפייה</div>
-        <div class="timer-value">{icon} {remaining_text}</div>
+    <div class="timer {urgent_class}">
+        <div class="timer-label">זמן נותר</div>
+        <div class="timer-value">{remaining_text}</div>
     </div>
     """, unsafe_allow_html=True)
-    
     return True
 
 
 def render_stats(comments):
-    """רנדור סטטיסטיקות"""
     total = len(comments)
     resolved = len([c for c in comments if c['resolved']])
-    high_priority = len([c for c in comments if c['priority'] == 'high' and not c['resolved']])
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{total}</div>
-            <div class="stat-label">סה״כ תגובות</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="stat-card" style="border-color: rgba(16, 185, 129, 0.3);">
-            <div class="stat-value" style="color: #34D399;">{resolved}</div>
-            <div class="stat-label">טופלו</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="stat-card" style="border-color: rgba(239, 68, 68, 0.3);">
-            <div class="stat-value" style="color: #F87171;">{high_priority}</div>
-            <div class="stat-label">דחופות</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-def render_comment_card(comment, is_editor=False):
-    """רנדור כרטיס תגובה"""
-    cat = CATEGORIES.get(comment['category'], CATEGORIES['video'])
-    pri = PRIORITIES.get(comment['priority'], PRIORITIES['medium'])
-    
-    resolved_class = "resolved" if comment['resolved'] else ""
-    resolved_icon = "✅ " if comment['resolved'] else ""
+    high = len([c for c in comments if c['priority'] == 'high' and not c['resolved']])
     
     st.markdown(f"""
-    <div class="comment-card {resolved_class}" style="border-right-color: {cat['color']};">
-        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span class="comment-timestamp">⏱️ {format_time(comment['timestamp_seconds'])}</span>
-                <span class="tag" style="background: {cat['color']}22; color: {cat['color']};">
-                    {cat['icon']} {cat['label']}
-                </span>
-                <span class="tag" style="background: {pri['bg']}; color: {pri['color']};">
-                    {pri['label']}
-                </span>
-            </div>
+    <div class="stat-grid">
+        <div class="stat-item">
+            <div class="stat-value">{total}</div>
+            <div class="stat-label">הערות</div>
         </div>
-        <p class="comment-text">{resolved_icon}{comment['text']}</p>
-        <div class="comment-author">✍️ {comment['author_name']} • {('עורך' if comment['author_type'] == 'editor' else 'לקוח')}</div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: {COLORS['success']};">{resolved}</div>
+            <div class="stat-label">טופלו</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: {COLORS['error']};">{high}</div>
+            <div class="stat-label">דחופות</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_comment(comment, is_editor=False):
+    cat = CATEGORIES.get(comment['category'], CATEGORIES['video'])
+    pri = PRIORITIES.get(comment['priority'], PRIORITIES['medium'])
+    resolved_class = "resolved" if comment['resolved'] else ""
+    resolved_mark = "✓ " if comment['resolved'] else ""
+    
+    st.markdown(f"""
+    <div class="comment {resolved_class}" style="border-right-color: {cat['color']};">
+        <div class="comment-header">
+            <span class="comment-time">⏱ {format_time(comment['timestamp_seconds'])}</span>
+            <span class="comment-tag" style="background: {cat['color']}22; color: {cat['color']};">{cat['icon']} {cat['label']}</span>
+            <span class="comment-tag" style="background: {pri['bg']}; color: {pri['color']};">{pri['label']}</span>
+        </div>
+        <div class="comment-text">{resolved_mark}{comment['text']}</div>
+        <div class="comment-meta">✍️ {comment['author_name']} • {'עורך' if comment['author_type'] == 'editor' else 'לקוח'}</div>
     </div>
     """, unsafe_allow_html=True)
     
     if is_editor:
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns(2)
         with col1:
-            if st.button(
-                f"{'↩️ בטל סימון' if comment['resolved'] else '✅ סמן כטופל'}", 
-                key=f"resolve_{comment['id']}",
-                use_container_width=True
-            ):
+            btn_text = "↩️ בטל" if comment['resolved'] else "✓ טופל"
+            if st.button(btn_text, key=f"r_{comment['id']}", use_container_width=True):
                 toggle_comment_resolved(comment['id'])
                 st.rerun()
         with col2:
-            if st.button("🗑️ מחק", key=f"delete_{comment['id']}", use_container_width=True):
+            if st.button("🗑️ מחק", key=f"d_{comment['id']}", use_container_width=True):
                 delete_comment(comment['id'])
                 st.rerun()
 
@@ -873,53 +930,44 @@ def render_comment_card(comment, is_editor=False):
 # Pages
 # ======================
 def page_home():
-    """עמוד בית - יצירת פרויקט או כניסה"""
     render_header()
     
-    # Hero Section
+    # Hero
     st.markdown(f"""
-    <div class="hero-section">
-        <h1 class="hero-title">סקירת וידאו מקצועית</h1>
-        <p class="hero-subtitle">שתף סרטונים עם לקוחות וקבל פידבק מדויק עם חותמות זמן</p>
+    <div class="hero">
+        <div class="hero-title">סקירת וידאו פשוטה ומקצועית</div>
+        <div class="hero-subtitle">העלה סרטון, שתף עם הלקוח, קבל משוב מדויק עם חותמות זמן. פשוט ככה.</div>
     </div>
     """, unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["📤 העלאת פרויקט חדש", "🔗 כניסה עם לינק"])
+    tab1, tab2 = st.tabs(["📤 העלאת פרויקט", "🔗 יש לי לינק"])
     
     with tab1:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("### פרטי הפרויקט")
         
-        st.markdown("### 📝 פרטי הפרויקט")
+        title = st.text_input("שם הפרויקט", placeholder="לדוגמה: פרסומת חורף 2025")
+        description = st.text_area("תיאור (אופציונלי)", placeholder="הערות לגבי הסרטון...", height=80)
         
-        title = st.text_input("שם הפרויקט *", placeholder="לדוגמה: פרסומת חורף 2025")
-        description = st.text_area("תיאור (אופציונלי)", placeholder="גרסה ראשונה לאישור...", height=80)
-        
-        st.markdown("### 🎬 העלאת וידאו")
-        
+        st.markdown("### קובץ וידאו")
         video_file = st.file_uploader(
-            "גרור קובץ לכאן או לחץ לבחירה",
+            "גרור קובץ או לחץ לבחירה",
             type=["mp4", "mov", "webm", "avi", "mkv"],
-            help="פורמטים נתמכים: MP4, MOV, WebM, AVI, MKV"
+            help="MP4, MOV, WebM, AVI, MKV • עד 200MB"
         )
         
         if video_file:
             st.video(video_file)
-            file_size = video_file.size / (1024*1024)
-            st.success(f"✅ **{video_file.name}** ({file_size:.1f} MB)")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+            size_mb = video_file.size / (1024*1024)
+            st.success(f"✓ {video_file.name} ({size_mb:.1f} MB)")
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        if st.button("🚀 צור פרויקט ושלח ללקוח", type="primary", disabled=not (title and video_file), use_container_width=True):
-            with st.spinner("⏳ מעלה את הסרטון..."):
+        if st.button("🚀 צור פרויקט", disabled=not (title and video_file), use_container_width=True):
+            with st.spinner("מעלה..."):
                 project_id, editor_token, client_token = create_project(title, description, video_file)
             
-            st.success("✅ הפרויקט נוצר בהצלחה!")
+            st.success("✓ הפרויקט נוצר!")
             st.balloons()
-            
-            # שמירת הטוקן ב-session
-            st.session_state['editor_token'] = editor_token
             
             base_url = get_base_url()
             client_link = f"{base_url}/?view={client_token}"
@@ -929,201 +977,178 @@ def page_home():
             
             st.markdown(f"""
             <div class="link-box">
-                <div style="font-size: 14px; color: #94A3B8; margin-bottom: 8px;">📤 לינק ללקוח (שתף אותו!):</div>
-                <code>{client_link}</code>
+                <div class="link-box-label">לינק ללקוח (שתף אותו!)</div>
+                <code class="link-box-url">{client_link}</code>
             </div>
             """, unsafe_allow_html=True)
             
             st.code(client_link, language=None)
             
-            with st.expander("🔐 לינק עריכה (שמור לעצמך!)"):
+            with st.expander("🔐 לינק עריכה (שמור!)"):
                 st.code(editor_link, language=None)
             
-            st.warning("⏰ **שים לב:** הפרויקט יימחק אוטומטית בעוד **72 שעות**!")
+            st.warning("⏰ הסרטון יימחק אוטומטית בעוד 72 שעות")
     
     with tab2:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("### הדבק את הלינק שקיבלת")
         
-        st.markdown("### 🔑 יש לך לינק?")
-        st.markdown("הדבק את הלינק שקיבלת מהעורך")
+        link = st.text_input("לינק", placeholder="https://...", label_visibility="collapsed")
         
-        link_input = st.text_input("הדבק לינק כאן", placeholder="https://...", label_visibility="collapsed")
-        
-        if st.button("🔓 כניסה", use_container_width=True):
-            if "view=" in link_input:
-                token = link_input.split("view=")[-1].split("&")[0]
+        if st.button("כניסה", use_container_width=True):
+            if "view=" in link:
+                token = link.split("view=")[-1].split("&")[0]
                 st.query_params["view"] = token
                 st.rerun()
-            elif "edit=" in link_input:
-                token = link_input.split("edit=")[-1].split("&")[0]
+            elif "edit=" in link:
+                token = link.split("edit=")[-1].split("&")[0]
                 st.query_params["edit"] = token
                 st.rerun()
             else:
-                st.error("❌ לינק לא תקין. וודא שהדבקת את הלינק המלא.")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+                st.error("לינק לא תקין")
 
 
 def page_editor(project):
-    """עמוד עריכה - לעורך"""
     render_header(project['title'])
     
-    # Layout
-    col_main, col_side = st.columns([2, 1])
+    col_main, col_side = st.columns([2.5, 1])
     
     with col_side:
-        # טיימר
+        # Timer
         if not render_timer(project['expires_at']):
             return
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # לינק ללקוח
+        # Link
         base_url = get_base_url()
         client_link = f"{base_url}/?view={project['client_token']}"
         
         st.markdown(f"""
         <div class="link-box">
-            <div style="font-size: 13px; color: #94A3B8; margin-bottom: 8px;">🔗 לינק ללקוח:</div>
-            <code style="font-size: 12px;">{client_link}</code>
+            <div class="link-box-label">🔗 לינק ללקוח</div>
+            <code class="link-box-url" style="font-size: 0.75rem;">{client_link}</code>
         </div>
         """, unsafe_allow_html=True)
         
         st.code(client_link, language=None)
         
-        st.markdown(f"<p style='text-align: center; color: #64748B; font-size: 13px;'>👁️ נצפה {project['view_count']} פעמים</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: {COLORS['text_muted']}; font-size: 0.75rem;'>👁 נצפה {project['view_count']} פעמים</p>", unsafe_allow_html=True)
         
         st.markdown("---")
         
-        # סטטיסטיקות
+        # Stats
         comments = get_comments(project['id'])
         render_stats(comments)
         
         st.markdown("---")
         
-        # מחיקה
-        with st.expander("⚠️ מחיקת פרויקט"):
-            st.warning("פעולה זו תמחק את הפרויקט לצמיתות!")
-            if st.button("🗑️ מחק פרויקט", type="secondary", use_container_width=True):
+        # Delete
+        with st.expander("⚠️ מחיקה"):
+            if st.button("🗑️ מחק פרויקט", use_container_width=True):
                 delete_project(project['id'])
                 st.query_params.clear()
                 st.rerun()
     
     with col_main:
-        # נגן וידאו
+        # Video
         video_path = UPLOAD_DIR / project['video_filename']
         if video_path.exists():
+            st.markdown('<div class="video-wrapper">', unsafe_allow_html=True)
             st.video(str(video_path))
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.error("❌ קובץ הוידאו לא נמצא")
+            st.error("קובץ לא נמצא")
             return
         
-        # הוספת תגובה
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("### 💬 הוסף הערה חדשה")
+        # Add comment
+        st.markdown("### 💬 הערה חדשה")
         
-        # שורה ראשונה - זמן
-        st.markdown("**⏱️ נקודת זמן:**")
         col_min, col_sec, col_cat, col_pri = st.columns([1, 1, 2, 2])
         
         with col_min:
             minutes = st.number_input("דקות", min_value=0, value=0, key="ed_min")
         with col_sec:
             seconds = st.number_input("שניות", min_value=0, max_value=59, value=0, key="ed_sec")
-        
         with col_cat:
             category = st.selectbox(
-                "🏷️ קטגוריה",
+                "קטגוריה",
                 options=list(CATEGORIES.keys()),
                 format_func=lambda x: f"{CATEGORIES[x]['icon']} {CATEGORIES[x]['label']}"
             )
-        
         with col_pri:
             priority = st.selectbox(
-                "⚡ עדיפות",
+                "עדיפות",
                 options=list(PRIORITIES.keys()),
                 format_func=lambda x: PRIORITIES[x]['label']
             )
         
-        comment_text = st.text_area("📝 תוכן ההערה", placeholder="כתוב את ההערה שלך...", height=100)
+        comment_text = st.text_area("הערה", placeholder="כתוב את ההערה...", height=80)
         
-        if st.button("➕ הוסף הערה", disabled=not comment_text, use_container_width=True):
-            timestamp = minutes * 60 + seconds
-            add_comment(project['id'], timestamp, comment_text, "עורך", "editor", category, priority)
-            st.success("✅ ההערה נוספה!")
+        if st.button("➕ הוסף", disabled=not comment_text, use_container_width=True):
+            add_comment(project['id'], minutes * 60 + seconds, comment_text, "עורך", "editor", category, priority)
             st.rerun()
         
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-        # רשימת תגובות
+        # Comments list
         st.markdown("---")
-        st.markdown("### 📋 כל ההערות")
+        st.markdown("### 📋 הערות")
         
         comments = get_comments(project['id'])
         
-        # סינון
-        filter_option = st.selectbox(
-            "🔍 סינון",
-            ["הכל", "לא טופלו", "טופלו"] + [f"{c['icon']} {c['label']}" for c in CATEGORIES.values()]
+        filter_opt = st.selectbox(
+            "סינון",
+            ["הכל", "ממתינות", "טופלו"],
+            label_visibility="collapsed"
         )
         
         if not comments:
-            st.info("📭 עדיין אין הערות. הוסף את ההערה הראשונה!")
-        
-        for comment in comments:
-            # סינון
-            if filter_option == "לא טופלו" and comment['resolved']:
-                continue
-            if filter_option == "טופלו" and not comment['resolved']:
-                continue
-            if filter_option not in ["הכל", "לא טופלו", "טופלו"]:
-                cat_label = f"{CATEGORIES[comment['category']]['icon']} {CATEGORIES[comment['category']]['label']}"
-                if filter_option != cat_label:
+            st.info("אין הערות עדיין")
+        else:
+            for c in comments:
+                if filter_opt == "ממתינות" and c['resolved']:
                     continue
-            
-            render_comment_card(comment, is_editor=True)
+                if filter_opt == "טופלו" and not c['resolved']:
+                    continue
+                render_comment(c, is_editor=True)
 
 
 def page_client(project):
-    """עמוד צפייה - ללקוח"""
-    render_header(project['title'])
+    render_header()
     
-    # הודעת ברוכים הבאים
+    # Welcome
     st.markdown(f"""
-    <div class="welcome-box">
-        <span>👋 שלום! צפה בסרטון והוסף את המשוב שלך</span>
+    <div class="welcome">
+        <div class="welcome-text">👋 שלום! כאן תוכל/י לצפות בסרטון ולשלוח משוב</div>
+        <div class="welcome-subtext">עצור/י את הסרטון בנקודה הרצויה ורשום/י את ההערה</div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Layout
     col_main, col_side = st.columns([3, 1])
     
     with col_side:
-        if not render_timer(project['expires_at']):
-            st.error("⏰ הסרטון כבר לא זמין")
-            return
+        render_timer(project['expires_at'])
     
     with col_main:
-        # נגן וידאו
+        # Video
         video_path = UPLOAD_DIR / project['video_filename']
         if video_path.exists():
+            st.markdown('<div class="video-wrapper">', unsafe_allow_html=True)
             st.video(str(video_path))
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.error("❌ קובץ הוידאו לא נמצא")
+            st.error("הסרטון לא זמין")
             return
     
-    # הוספת משוב
+    # Add feedback
     st.markdown("---")
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.markdown("### 💬 הוסף משוב")
     
-    col_name, col_time = st.columns([2, 1])
+    col1, col2 = st.columns([2, 1])
     
-    with col_name:
-        author_name = st.text_input("👤 השם שלך *", placeholder="הכנס את שמך...")
+    with col1:
+        author_name = st.text_input("השם שלך", placeholder="איך קוראים לך?")
     
-    with col_time:
-        st.markdown("**⏱️ נקודת זמן:**")
+    with col2:
+        st.markdown("**נקודת זמן**")
         c1, c2 = st.columns(2)
         with c1:
             minutes = st.number_input("דקות", min_value=0, value=0, key="cl_min")
@@ -1131,107 +1156,95 @@ def page_client(project):
             seconds = st.number_input("שניות", min_value=0, max_value=59, value=0, key="cl_sec")
     
     col_cat, col_pri = st.columns(2)
-    
     with col_cat:
         category = st.selectbox(
-            "🏷️ קטגוריה",
+            "קטגוריה",
             options=list(CATEGORIES.keys()),
             format_func=lambda x: f"{CATEGORIES[x]['icon']} {CATEGORIES[x]['label']}",
             key="cl_cat"
         )
-    
     with col_pri:
         priority = st.selectbox(
-            "⚡ עדיפות",
+            "עדיפות",
             options=list(PRIORITIES.keys()),
             format_func=lambda x: PRIORITIES[x]['label'],
             key="cl_pri"
         )
     
-    comment_text = st.text_area("📝 המשוב שלך *", placeholder="כתוב את המשוב שלך כאן...", height=120)
+    comment_text = st.text_area("המשוב שלך", placeholder="מה לשנות או לתקן?", height=100)
     
-    if st.button("📤 שלח משוב", type="primary", disabled=not (author_name and comment_text), use_container_width=True):
-        timestamp = minutes * 60 + seconds
-        add_comment(project['id'], timestamp, comment_text, author_name, "client", category, priority)
-        st.success("✅ המשוב נשלח בהצלחה! תודה רבה!")
+    if st.button("📤 שלח משוב", disabled=not (author_name and comment_text), use_container_width=True):
+        add_comment(project['id'], minutes * 60 + seconds, comment_text, author_name, "client", category, priority)
+        st.success("✓ המשוב נשלח!")
         st.balloons()
         st.rerun()
     
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    # הצגת משובים קודמים
+    # Previous comments
     st.markdown("---")
     st.markdown("### 📋 משובים שנשלחו")
     
     comments = get_comments(project['id'])
     
     if not comments:
-        st.info("📭 עדיין אין משובים. היה הראשון! 🎉")
+        st.info("עדיין אין משובים. היה/יי הראשון/ה! 🎉")
     else:
-        for comment in comments:
-            render_comment_card(comment, is_editor=False)
+        for c in comments:
+            render_comment(c, is_editor=False)
     
-    # כפתור "סיימתי לתת משוב"
+    # Complete button
     st.markdown("---")
     st.markdown("### ✅ סיימת?")
     
-    if 'review_completed' not in st.session_state:
-        st.session_state.review_completed = False
+    if 'review_done' not in st.session_state:
+        st.session_state.review_done = False
     
-    if not st.session_state.review_completed:
-        client_name_confirm = st.text_input("השם שלך לאישור", placeholder="הכנס את שמך...", key="confirm_name")
+    if not st.session_state.review_done:
+        confirm_name = st.text_input("השם שלך לאישור", placeholder="הכנס שם...", key="confirm")
         
-        if st.button("🎉 סיימתי לתת משוב - אפשר להמשיך לעבוד!", type="primary", use_container_width=True, disabled=not client_name_confirm):
-            # עדכון הפרויקט שהלקוח סיים
-            mark_review_complete(project['id'], client_name_confirm)
-            st.session_state.review_completed = True
-            st.success("✅ תודה רבה! העורך קיבל הודעה שסיימת את המשוב.")
+        if st.button("🎉 סיימתי - אפשר להמשיך לעבוד!", disabled=not confirm_name, use_container_width=True):
+            mark_review_complete(project['id'], confirm_name)
+            st.session_state.review_done = True
             st.balloons()
             st.rerun()
     else:
         st.markdown(f"""
-        <div class="welcome-box" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.1) 100%);">
-            <span style="color: #34D399; font-size: 20px;">✅ המשוב שלך נשלח בהצלחה!</span>
-            <p style="color: #94A3B8; margin-top: 8px;">העורך יקבל הודעה ויתחיל לעבוד על התיקונים.</p>
+        <div class="completed-box">
+            <div class="completed-icon">✅</div>
+            <div class="completed-title">תודה רבה!</div>
+            <div class="completed-text">העורך קיבל את המשוב ויתחיל לעבוד על התיקונים.</div>
         </div>
         """, unsafe_allow_html=True)
 
 
 # ======================
-# Main App
+# Main
 # ======================
 def main():
-    # אתחול DB
     init_db()
-    
-    # ניקוי פרויקטים שפג תוקפם
     cleanup_expired_projects()
+    load_css()
     
-    # בדיקת query params
     params = st.query_params
     
     if "edit" in params:
-        # עמוד עריכה
         project = get_project_by_editor_token(params["edit"])
         if project:
             page_editor(project)
         else:
-            st.error("❌ פרויקט לא נמצא או שפג תוקפו")
-            if st.button("🏠 חזרה לדף הבית"):
+            st.error("פרויקט לא נמצא או שפג תוקפו")
+            if st.button("🏠 חזרה"):
                 st.query_params.clear()
                 st.rerun()
     
     elif "view" in params:
-        # עמוד לקוח
         project = get_project_by_client_token(params["view"])
         if project:
             page_client(project)
         else:
-            st.error("❌ הסרטון לא נמצא או שפג תוקפו")
-            st.info("💡 ייתכן שעברו 72 שעות מאז העלאת הסרטון והוא נמחק אוטומטית.")
+            st.error("הסרטון לא נמצא או שפג תוקפו")
+            st.info("ייתכן שעברו 72 שעות והסרטון נמחק אוטומטית.")
     
     else:
-        # עמוד בית
         page_home()
 
 
