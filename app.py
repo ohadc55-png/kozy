@@ -12,7 +12,7 @@ import time
 # ======================
 st.set_page_config(
     page_title="Kozy Review",
-    page_icon="🎬",
+    page_icon="https://i.postimg.cc/7LMZ1dLJ/קוזי.png",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -87,27 +87,29 @@ def load_css():
         box-sizing: border-box;
     }}
     
+    /* Main app container with background */
     .stApp {{
         direction: rtl;
-        background: #0a0a0f;
-    }}
-    
-    /* Background Image with Overlay */
-    .stApp::before {{
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        background-color: #0a0a0f;
         background-image: url('{BG_IMAGE_URL}');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
-        opacity: 0.45;
-        z-index: -1;
-        pointer-events: none;
+    }}
+    
+    /* Dark overlay for 45% opacity effect */
+    .stApp > div:first-child {{
+        background: rgba(10, 10, 15, 0.55);
+        min-height: 100vh;
+    }}
+    
+    [data-testid="stAppViewContainer"] {{
+        background: rgba(10, 10, 15, 0.55);
+    }}
+    
+    [data-testid="stHeader"] {{
+        background: transparent;
     }}
     
     /* Hide Streamlit branding */
